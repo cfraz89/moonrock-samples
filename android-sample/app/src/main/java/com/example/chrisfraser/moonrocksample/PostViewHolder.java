@@ -13,8 +13,8 @@ import butterknife.ButterKnife;
  * Created by chrisfraser on 7/07/15.
  */
 public class PostViewHolder extends RecyclerView.ViewHolder {
-    @Bind(R.id.textView) private TextView mTextView1;
-    @Bind(R.id.textView2) private TextView mTextView2;
+    @Bind(R.id.textView) TextView mTextView1;
+    @Bind(R.id.textView2) TextView mTextView2;
 
     public static PostViewHolder Create(ViewGroup viewGroup) {
         View view = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.post, viewGroup, false);

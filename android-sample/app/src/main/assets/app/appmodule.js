@@ -1,6 +1,5 @@
-/// <reference path="../bower_components/axios/axios.d.ts" />
-/// <reference path="../bower_components/rxjs/ts/rx.d.ts" />
 var axios = require('axios');
+var Rx = require('rx');
 function toNumber(source) {
     var num = parseInt(source);
     return isNaN(num) ? 0 : num;

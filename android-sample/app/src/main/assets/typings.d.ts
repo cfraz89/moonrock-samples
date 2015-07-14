@@ -1,2 +1,4 @@
-/// <reference path="bower_components/axios/axios.d.ts" />
-/// <reference path="bower_components/rxjs/ts/rx.d.ts" />
+/// <reference path="jspm_packages/github/cfraz89/moonrock-js@master/moonrockportals.ts"/>
+/// <reference path="jspm_packages/github/cfraz89/moonrock-js@master/moonrock.ts"/>
+/// <reference path="jspm_packages/npm/rx@2.5.3/ts/rx.d.ts"/>
+/// <reference path="jspm_packages/npm/axios@0.5.4/axios.d.ts"/>

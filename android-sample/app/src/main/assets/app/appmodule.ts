@@ -1,7 +1,5 @@
-/// <reference path="../bower_components/axios/axios.d.ts" />
-/// <reference path="../bower_components/rxjs/ts/rx.d.ts" />
-
 import axios = require('axios')
+import Rx = require('rx')
 
 function toNumber(source: string): number {
   var num = parseInt(source)
