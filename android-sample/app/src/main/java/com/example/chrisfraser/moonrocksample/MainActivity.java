@@ -27,7 +27,8 @@ import rx.android.widget.WidgetObservable;
 
 public class MainActivity extends AppCompatActivity {
     MoonRock mMoonRock;
-    Observable<MoonRockModule> mModuleObservable;
+    Observable<MoonRockModule> mModuleReady;
+    MoonRockModule moonRockModule;
 
     @Portal Observable<Object> addPressed;
     @Portal Observable<String> add1Text;
@@ -48,51 +49,66 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setupView();
-
-        mMoonRock = new MoonRock(this);
-        mModuleObservable = mMoonRock.loadModule("app/appmodule", this);
-        createPortals();
-        mModuleObservable.subscribe(moonRockModule -> moonRockModule.getPortalGenerator().generatePortals());
-    }
-
-    private void setupView() {
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
         mRecycler.setLayoutManager(new LinearLayoutManager(this));
+
+        createObservables();
+
+        mMoonRock = ((SampleApplication)getApplication()).getMoonRock();
+        mModuleReady = mMoonRock.loadModule("app/appmodule", "sample", this);
+        mModuleReady.subscribe(module -> {
+            moonRockModule = module;
+            module.generatePortals();
+            module.restoreInstanceState(savedInstanceState);
+        });
     }
 
-    private void createPortals() {
+
+    private void createObservables() {
         addPressed = ViewObservable.clicks(mAddButton).map(ev -> null);
         add1Text = WidgetObservable.text(mAdd1).map(ev -> ev.text().toString());
         add2Text = WidgetObservable.text(mAdd2).map(ev -> ev.text().toString());
     }
 
+    void setupBehaviour(MoonRockModule module) {
+        mTextSubscription = AppObservable.bindActivity(this, this.sum).subscribe(sum->mTextView.setText(sum!=null ? sum : ""));
+        mPostResponseSubscription = AppObservable.bindActivity(this, this.posts).subscribe(data -> {
+            if (data != null) {
+                mProgressBar.setVisibility(View.GONE);
+                mRecycler.setVisibility(View.VISIBLE);
+                mRecycler.setAdapter(new PostsAdapter(data));
+            }
+        });
+    }
+
     @Override
     protected void onStart() {
         super.onStart();
-        mModuleObservable.subscribe(this::setupBehaviour);
-    }
-
-    void setupBehaviour(MoonRockModule module) {
-        mTextSubscription = AppObservable.bindActivity(this, this.sum).subscribe(mTextView::setText);
-        mPostResponseSubscription = AppObservable.bindActivity(this, this.posts).subscribe(data -> {
-            mProgressBar.setVisibility(View.GONE);
-            mRecycler.setVisibility(View.VISIBLE);
-            mRecycler.setAdapter(new PostsAdapter(data));
-        });
+        mModuleReady.subscribe(this::setupBehaviour);
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        mTextSubscription.unsubscribe();
-        mPostResponseSubscription.unsubscribe();
+        if (mTextSubscription != null)
+            mTextSubscription.unsubscribe();
+        if (mPostResponseSubscription != null)
+            mPostResponseSubscription.unsubscribe();
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if (moonRockModule!=null)
+            moonRockModule.saveInstanceState(outState);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        if (moonRockModule != null)
+            moonRockModule.unlinkPortals();
         mMoonRock = null;
     }
 }
