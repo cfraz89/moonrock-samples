@@ -6,7 +6,7 @@ function toNumber(source: string): number {
   return isNaN(num) ? 0 : num
 }
 
-export class appModule implements MoonRockPortals {
+export class appModule implements MoonRockModule {
   static PostsUrl = 'http://jsonplaceholder.typicode.com/posts'
 
   //Forwards portals
@@ -14,7 +14,7 @@ export class appModule implements MoonRockPortals {
   add1Text: Rx.Observable<string>
   add2Text: Rx.Observable<string>
 
-  //Reverse portals
+  //Reverse portalsx`
   sum: Rx.Observable<string>
   posts: Rx.Observable<any>
 
@@ -27,6 +27,9 @@ export class appModule implements MoonRockPortals {
   }
 
   portalsLinked() {
+  }
+
+  destroy() {
   }
 }
 

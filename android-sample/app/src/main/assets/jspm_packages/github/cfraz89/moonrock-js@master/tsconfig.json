@@ -6,7 +6,7 @@
     },
     "files": [
         "./moonrock.ts",
-        "./moonrockportals.ts",
+        "./moonrockmodule.ts",
         "./mrhelper.ts",
         "./typings.d.ts"
     ]

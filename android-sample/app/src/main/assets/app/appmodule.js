@@ -16,6 +16,8 @@ var appModule = (function () {
     };
     appModule.prototype.portalsLinked = function () {
     };
+    appModule.prototype.destroy = function () {
+    };
     appModule.PostsUrl = 'http://jsonplaceholder.typicode.com/posts';
     return appModule;
 })();

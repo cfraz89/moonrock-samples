@@ -6,6 +6,12 @@ var MRHelper = (function () {
     MRHelper.prototype.getModule = function (loadedName) {
         return this.window[loadedName];
     };
+    MRHelper.prototype.getSubject = function (moduleName, subjectName) {
+        return this.getModule(moduleName)[subjectName];
+    };
+    MRHelper.prototype.getObservable = function (moduleName, subjectName) {
+        return this.getModule(moduleName)[subjectName];
+    };
     MRHelper.prototype.loadModule = function (moduleName, loadedName) {
         var _this = this;
         System.import(moduleName).then(function (mod) {
@@ -14,17 +20,17 @@ var MRHelper = (function () {
         });
     };
     MRHelper.prototype.portal = function (loadedName, subjectName) {
-        var portal = new Rx.Subject();
-        this.getModule(loadedName)[subjectName] = portal;
+        if (this.getSubject(loadedName, subjectName) == undefined) {
+            var portal = new Rx.Subject();
+            this.getModule(loadedName)[subjectName] = portal;
+        }
     };
     MRHelper.prototype.activatePortal = function (loadedName, subjectName, serializedInput) {
         var data = JSON.parse(serializedInput);
-        var portal = (this.getModule(loadedName)[subjectName]);
-        portal.onNext(data);
+        this.getSubject(loadedName, subjectName).onNext(data);
     };
     MRHelper.prototype.reversePortal = function (loadedName, subjectName) {
-        var portal = (this.getModule(loadedName)[subjectName]);
-        portal.subscribe(function (data) {
+        this.getObservable(loadedName, subjectName).subscribe(function (data) {
             reversePortalInterface.onNext(JSON.stringify(data), subjectName);
         });
     };
@@ -33,6 +39,10 @@ var MRHelper = (function () {
     };
     MRHelper.prototype.portalsLinked = function (loadedName) {
         this.getModule(loadedName).portalsLinked();
+    };
+    MRHelper.prototype.unloadModule = function (loadedName) {
+        this.getModule(loadedName).destroy();
+        this.window[loadedName] = null;
     };
     return MRHelper;
 })();
