@@ -19,16 +19,17 @@ import com.trogdor.moonrock.annotations.ReversePortal;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import rx.Observable;
-import rx.Subscription;
 import rx.android.app.AppObservable;
 import rx.android.view.ViewObservable;
 import rx.android.widget.WidgetObservable;
+import rx.subscriptions.CompositeSubscription;
 
 
 public class MainActivity extends AppCompatActivity {
     MoonRock mMoonRock;
     Observable<MoonRockModule> mModuleReady;
     MoonRockModule moonRockModule;
+    CompositeSubscription subscriptions;
 
     @Portal Observable<Object> addPressed;
     @Portal Observable<String> add1Text;
@@ -36,22 +37,19 @@ public class MainActivity extends AppCompatActivity {
     @ReversePortal Observable<String> sum;
     @ReversePortal Observable<PostList> posts;
 
-    Subscription mTextSubscription;
-    Subscription mPostResponseSubscription;
-
-    @Bind(R.id.addButton) Button mAddButton;
-    @Bind(R.id.returnText) TextView mTextView;
-    @Bind(R.id.recycler) RecyclerView mRecycler;
-    @Bind(R.id.progressBar) ProgressBar mProgressBar;
-    @Bind(R.id.add1) EditText mAdd1;
-    @Bind(R.id.add2) EditText mAdd2;
+    @Bind(R.id.addButton) Button addButton;
+    @Bind(R.id.returnText) TextView sumView;
+    @Bind(R.id.recycler) RecyclerView postsRecycler;
+    @Bind(R.id.progressBar) ProgressBar spinner;
+    @Bind(R.id.add1) EditText editAdd1;
+    @Bind(R.id.add2) EditText editAdd2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
-        mRecycler.setLayoutManager(new LinearLayoutManager(this));
+        postsRecycler.setLayoutManager(new LinearLayoutManager(this));
 
         createObservables();
 
@@ -64,22 +62,26 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-
     private void createObservables() {
-        addPressed = ViewObservable.clicks(mAddButton).map(ev -> null);
-        add1Text = WidgetObservable.text(mAdd1).map(ev -> ev.text().toString());
-        add2Text = WidgetObservable.text(mAdd2).map(ev -> ev.text().toString());
+        addPressed = ViewObservable.clicks(addButton).map(ev -> null);
+        add1Text = WidgetObservable.text(editAdd1).map(ev -> ev.text().toString());
+        add2Text = WidgetObservable.text(editAdd2).map(ev -> ev.text().toString());
     }
 
     void setupBehaviour(MoonRockModule module) {
-        mTextSubscription = AppObservable.bindActivity(this, this.sum).subscribe(sum->mTextView.setText(sum!=null ? sum : ""));
-        mPostResponseSubscription = AppObservable.bindActivity(this, this.posts).subscribe(data -> {
-            if (data != null) {
-                mProgressBar.setVisibility(View.GONE);
-                mRecycler.setVisibility(View.VISIBLE);
-                mRecycler.setAdapter(new PostsAdapter(data));
-            }
-        });
+        subscriptions = new CompositeSubscription();
+        subscriptions.add(
+            AppObservable.bindActivity(this, this.sum).subscribe(sum -> sumView.setText(sum != null ? sum : ""))
+        );
+        subscriptions.add(
+            AppObservable.bindActivity(this, this.posts).subscribe(data -> {
+                if (data != null) {
+                    spinner.setVisibility(View.GONE);
+                    postsRecycler.setVisibility(View.VISIBLE);
+                    postsRecycler.setAdapter(new PostsAdapter(data));
+                }
+            })
+        );
     }
 
     @Override
@@ -91,10 +93,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
-        if (mTextSubscription != null)
-            mTextSubscription.unsubscribe();
-        if (mPostResponseSubscription != null)
-            mPostResponseSubscription.unsubscribe();
+        subscriptions.unsubscribe();
     }
 
     @Override
@@ -109,6 +108,7 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
         if (moonRockModule != null)
             moonRockModule.unlinkPortals();
+        moonRockModule = null;
         mMoonRock = null;
     }
 }

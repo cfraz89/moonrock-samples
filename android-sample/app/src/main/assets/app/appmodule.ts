@@ -7,14 +7,12 @@ function toNumber(source: string): number {
 }
 
 export class appModule implements MoonRockModule {
-  static PostsUrl = 'http://jsonplaceholder.typicode.com/posts'
-
-  //Forwards portals
+  //Forward portals (from the app's native code)
   addPressed: Rx.Observable<any>
   add1Text: Rx.Observable<string>
   add2Text: Rx.Observable<string>
 
-  //Reverse portalsx`
+  //Reverse portals (generated here)
   sum: Rx.Observable<string>
   posts: Rx.Observable<any>
 
@@ -23,14 +21,11 @@ export class appModule implements MoonRockModule {
     var add2Num = this.add2Text.map(toNumber);
     var sumStream = add1Num.combineLatest(add2Num, (num1, num2) => (num1 + num2).toString())
     this.sum = this.addPressed.withLatestFrom(sumStream, (ev, num) => num)
-    this.posts = Rx.Observable.fromPromise(axios.get(appModule.PostsUrl));
+    this.posts = Rx.Observable.fromPromise(axios.get('http://jsonplaceholder.typicode.com/posts'));
   }
 
-  portalsLinked() {
-  }
-
-  destroy() {
-  }
+  portalsLinked() {}
+  destroy() {}
 }
 
 export default (new appModule())
